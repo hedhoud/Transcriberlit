@@ -22,6 +22,7 @@ st.markdown(
     """
     <style>
     .transcription {
+        border : 'bold','1px';
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         font-size: 16px;
         color: #333;
@@ -44,16 +45,24 @@ st.write('To use this app, upload an audio file or record a clip using the micro
 sample_rate = 16_000
 
 # Load the Whisper model
-model = whisper.load_model('base')
+Tiny = 'tiny'
+Base = 'base'
+Medium = 'medium'
+model_selection = st.sidebar.checkbox('Select to change a Model', value=False)
+if model_selection :
+    model = st.sidebar.radio('Choose the Whisper Model:', [Tiny, Base, Medium])
+    model = whisper.load_model(model)
+else:
+    model = whisper.load_model("base")
 
 # Upload an audio file (WAV or MP3) from the sidebar
-audio_file = st.sidebar.file_uploader('Upload Audio', type=['wav', 'mp3'])
+audio_file = st.file_uploader("Upload an audio File:",type=['wav', 'mp3'])
+
 
 # Record an audio clip using the microphone
-
 audio_bytes = audio_recorder(
     energy_threshold=(-2.0, 2.0),
-    pause_threshold=10.0,
+    pause_threshold=15.0,
     sample_rate=sample_rate,
     recording_color="#e8b62c",
     neutral_color="#6aa36f",
@@ -74,7 +83,9 @@ if audio_bytes:
 
 # If an audio file was uploaded, play it using st.audio
 if audio_file is not None:
-    st.audio(audio_file)
+    st.success("File uploaded successfully!")
+    st.audio(audio_file.read())
+    
 
 # If the "Transcribe Audio" button is clicked, transcribe the audio
 if st.sidebar.button('Transcribe Audio'):
@@ -83,13 +94,14 @@ if st.sidebar.button('Transcribe Audio'):
         if transcription:
             st.header('Transcription')
             st.markdown(f'<h3 class="transcription-heading">Transcription:</h3>', unsafe_allow_html=True)
+            st.markdown(f'<ul class="transcription-list">{transcription["text"]}</ul>', unsafe_allow_html=True)
+
         else:
             st.sidebar.error('Something went wrong')
     elif audio_bytes is not None:
         transcription = model.transcribe(filename)
         if transcription:
-            st.header('Transcription')
-            st.markdown(f'<h3 class="transcription-heading">Transcription:</h3>', unsafe_allow_html=True)
+            st.header('Transcription:')
             st.markdown(f'<ul class="transcription-list">{transcription["text"]}</ul>', unsafe_allow_html=True)
         else:
             st.sidebar.error('Something went wrong')
