@@ -1,61 +1,97 @@
-import streamlit as st
+
 import whisper
 from audio_recorder_streamlit import audio_recorder
-import soundfile as sf
+import streamlit as st
 
+# This script allows the user to transcribe an audio file or a recorded audio clip using the Whisper library.
 
-st.title('My Whisper transcriber')
-sample_rate=16_000
-
-
-model = whisper.load_model('base')
-
-
-# upload an audio file mp3/wav
-audio_file = st.sidebar.file_uploader('Upload Audio', type=['wav','mp3']) 
-
-
-audio_bytes = audio_recorder(
-    energy_threshold=(-1.0, 1.0),
-    pause_threshold=30.0,
-    sample_rate=sample_rate,
-    text="Recording audio",
-    recording_color="#e8b62c",
-    neutral_color="#6aa36f",
-    icon_name="user",
-    icon_size="6x",
+# Add custom CSS styles
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #f0f0f0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    </style>
+    
+    """,
+    unsafe_allow_html=True
+)
+st.markdown(
+    """
+    <style>
+    .transcription {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        color: #333;
+    }
+    </style>
+    
+    """,
+    unsafe_allow_html=True
 )
 
-filename = "audio_record.wav"
-if audio_bytes: 
-    with open(filename, "wb") as f_out:
-        f_out.write(audio_bytes)
 
+
+# Add content to your app
+st.title('My Whisper transcriber')
+st.write('Welcome to my app!')
+st.header('Instructions')
+st.write('To use this app, upload an audio file or record a clip using the microphone. Then click the "Transcribe Audio" button to transcribe the audio.')
+
+
+sample_rate = 16_000
+
+# Load the Whisper model
+model = whisper.load_model('base')
+
+# Upload an audio file (WAV or MP3) from the sidebar
+audio_file = st.sidebar.file_uploader('Upload Audio', type=['wav', 'mp3'])
+
+# Record an audio clip using the microphone
+
+audio_bytes = audio_recorder(
+    energy_threshold=(-2.0, 2.0),
+    pause_threshold=10.0,
+    sample_rate=sample_rate,
+    recording_color="#e8b62c",
+    neutral_color="#6aa36f",
+    icon_size="2x",
+)
+
+# If an audio clip was recorded, write it to a file
 if audio_bytes:
-    st.audio(audio_bytes, format="audio/wav")
+    filename = "audio_record.wav"
+    try:
+        with open(filename, "wb") as audio_file:
+            audio_file.write(audio_bytes)
+    except Exception as e:
+        st.error(f"Error writing audio file: {e}")
+    else:
+        # Play the recorded audio clip using st.audio
+        st.audio(audio_bytes, format="audio/wav")
 
-
+# If an audio file was uploaded, play it using st.audio
 if audio_file is not None:
     st.audio(audio_file)
-    
-if st.sidebar.button('Transcrib Audio'):
-    model = whisper.load_model('base')
-    if audio_file is not None :
-        transcribtion = model.transcribe(audio_file.name)
-        if transcribtion: 
-            st.sidebar.success('Audio transcripted')
-        else: 
-            st.sidebar.error('something wrong')
-        st.write(transcribtion['text'])
-    elif audio_bytes is not None :
-        transcribtion = model.transcribe(filename)
-        if transcribtion: 
-            st.sidebar.success('Audio transcripted')
-        else: 
-            st.sidebar.error('something wrong')
-        st.write(transcribtion['text'])
-    else:
-        st.error('you need to record/upload an audio file')
-        
 
-       
+# If the "Transcribe Audio" button is clicked, transcribe the audio
+if st.sidebar.button('Transcribe Audio'):
+    if audio_file is not None:
+        transcription = model.transcribe(audio_file.name)
+        if transcription:
+            st.header('Transcription')
+            st.markdown(f'<h3 class="transcription-heading">Transcription:</h3>', unsafe_allow_html=True)
+        else:
+            st.sidebar.error('Something went wrong')
+    elif audio_bytes is not None:
+        transcription = model.transcribe(filename)
+        if transcription:
+            st.header('Transcription')
+            st.markdown(f'<h3 class="transcription-heading">Transcription:</h3>', unsafe_allow_html=True)
+            st.markdown(f'<ul class="transcription-list">{transcription["text"]}</ul>', unsafe_allow_html=True)
+        else:
+            st.sidebar.error('Something went wrong')
+    else:
+        st.error('You need to record/upload an audio file')
