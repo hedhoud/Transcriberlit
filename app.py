@@ -93,7 +93,6 @@ if st.sidebar.button('Transcribe Audio'):
         transcription = model.transcribe(audio_file.name)
         if transcription:
             st.header('Transcription')
-            st.markdown(f'<h3 class="transcription-heading">Transcription:</h3>', unsafe_allow_html=True)
             st.markdown(f'<ul class="transcription-list">{transcription["text"]}</ul>', unsafe_allow_html=True)
 
         else:
