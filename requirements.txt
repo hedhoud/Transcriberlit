@@ -1,0 +1,9 @@
+torch
+transforms
+transformers
+torchaudio
+streamlit
+audio_recorder_streamlit
+ffmpeg
+setuptools-rust
+git+https://github.com/openai/whisper.git
