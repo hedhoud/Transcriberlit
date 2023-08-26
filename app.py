@@ -48,8 +48,9 @@ sample_rate = 16_000
 Tiny = 'tiny'
 Base = 'base'
 Medium = 'medium'
-model_selection = st.sidebar.checkbox('Select to change a Model', value=False)
-if model_selection :
+if model_selection := st.sidebar.checkbox(
+    'Select to change a Model', value=False
+):
     model = st.sidebar.radio('Choose the Whisper Model:', [Tiny, Base, Medium])
     model = whisper.load_model(model)
 else:
@@ -85,21 +86,19 @@ if audio_bytes:
 if audio_file is not None:
     st.success("File uploaded successfully!")
     st.audio(audio_file.read())
-    
+
 
 # If the "Transcribe Audio" button is clicked, transcribe the audio
 if st.sidebar.button('Transcribe Audio'):
     if audio_file is not None:
-        transcription = model.transcribe(audio_file.name)
-        if transcription:
+        if transcription := model.transcribe(audio_file.name):
             st.header('Transcription')
             st.markdown(f'<ul class="transcription-list">{transcription["text"]}</ul>', unsafe_allow_html=True)
 
         else:
             st.sidebar.error('Something went wrong')
     elif audio_bytes is not None:
-        transcription = model.transcribe(filename)
-        if transcription:
+        if transcription := model.transcribe(filename):
             st.header('Transcription:')
             st.markdown(f'<ul class="transcription-list">{transcription["text"]}</ul>', unsafe_allow_html=True)
         else:
